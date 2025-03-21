@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SB Admin 2 - Dashboard</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="a00_com/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- Custom styles for this template-->
+    <link href="a00_com/css/sb-admin-2.min.css" rel="stylesheet">
+    <title>Chart.js with AJAX</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+    <!-- Sidebar Toggle (Topbar) -->
+    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+        <i class="fa fa-bars"></i>
+    </button>
+
+    <!-- Topbar Search -->
+    <form
+        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+        <div class="input-group">
+            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
+                aria-label="Search" aria-describedby="basic-addon2">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button">
+                    <i class="fas fa-search fa-sm"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+    
+ 
+    <!-- Topbar Navbar -->
+    <ul class="navbar-nav ml-auto">
+
+        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+        <li class="nav-item dropdown no-arrow d-sm-none">
+            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-search fa-fw"></i>
+            </a>
+            <!-- Dropdown - Messages -->
+            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                aria-labelledby="searchDropdown">
+                <form class="form-inline mr-auto w-100 navbar-search">
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-light border-0 small"
+                            placeholder="Search for..." aria-label="Search"
+                            aria-describedby="basic-addon2">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button">
+                                <i class="fas fa-search fa-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </li>
+ 		
+        <!-- Nav Item - Alerts -->
+        <li class="nav-item dropdown no-arrow mx-1">
+            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-bell fa-fw"></i>
+                <!-- Counter - Alerts -->
+                <span class="badge badge-danger badge-counter">3+</span>
+            </a>
+            <!-- Dropdown - Alerts -->
+            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                aria-labelledby="alertsDropdown">
+                <h6 class="dropdown-header">
+                    Alerts Center
+                </h6>
+                <a class="dropdown-item d-flex align-items-center" href="#">
+                    <div class="mr-3">
+                        <div class="icon-circle bg-primary">
+                            <i class="fas fa-file-alt text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-gray-500">December 12, 2019</div>
+                        <span class="font-weight-bold">A new monthly report is ready to download!</span>
+                    </div>
+                </a>
+                <a class="dropdown-item d-flex align-items-center" href="#">
+                    <div class="mr-3">
+                        <div class="icon-circle bg-success">
+                            <i class="fas fa-donate text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-gray-500">December 7, 2019</div>
+                        $290.29 has been deposited into your account!
+                    </div>
+                </a>
+                <a class="dropdown-item d-flex align-items-center" href="#">
+                    <div class="mr-3">
+                        <div class="icon-circle bg-warning">
+                            <i class="fas fa-exclamation-triangle text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-gray-500">December 2, 2019</div>
+                        Spending Alert: We've noticed unusually high spending for your account.
+                    </div>
+                </a>
+                <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
+            </div>
+        </li>
+
+        <!-- Nav Item - Messages -->
+        <li class="nav-item dropdown no-arrow mx-1">
+            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-envelope fa-fw"></i>
+                <!-- Counter - Messages -->
+                <span class="badge badge-danger badge-counter" id="messageAlert"></span>
+            </a>
+            <!-- Dropdown - Messages -->
+            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                aria-labelledby="messagesDropdown">
+                <h6 class="dropdown-header" id="reMsgModalT">
+                    받은 메세지
+                </h6>
+
+                <a class="dropdown-item text-center small text-gray-500" href="/yoocookiemessage?lang=${param.lang}">메세지 확인하러 가기</a>
+            </div>
+        </li>
+
+        <div class="topbar-divider d-none d-sm-block"></div>
+
+        <!-- Nav Item - User Information -->
+        <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small" id="userInfoEname"></span>
+                <img class="img-profile rounded-circle"
+                    src="a00_com/img/undraw_profile.svg">
+            </a>
+            <!-- Dropdown - User Information -->
+            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                aria-labelledby="userDropdown">
+                <a class="dropdown-item" href="/yoocookieempMyInfo?lang=${param.lang}">
+                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                    내 사원정보
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                    로그아웃
+                </a>
+            </div>
+        </li>
+    </ul>
+</nav>
+
+<div class="container-fluid">
+<div class="row">
+    <div class="col-xl-8 col-lg-7">
+        <!-- Area Chart -->
+       <div class="card shadow mb-4">
+           <div class="card-header py-3">
+               <h2 class="m-0 font-weight-bold text-primary">제품별 판매액</h2>
+           </div>
+           <div class="card-body">
+               <div class="chart-area">
+                   <canvas id="myAreaChart"></canvas>
+               </div>
+               <hr>
+               
+           </div>
+       </div>
+    
+    </div>
+    <script>
+        function ajax() {
+            $.ajax({
+                url: "/prodt_sal_chartList",
+                type: "get",
+                dataType: "json",
+                success: function(data) {
+                    const labels = data.map(item => item.sal_month);
+                    const chartData1 = data.map(item => item.original_cookie_tot);
+                    const chartData2 = data.map(item => item.cocho_cookie_tot);
+                    const chartData3 = data.map(item => item.nut_cookie_tot);
+					console.log(labels)
+                    
+                    
+                    
+                    
+                    var ctx = document.getElementById("myAreaChart").getContext('2d');
+                    var myLineChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                            {
+                                label: "오리지날쿠키",
+                                lineTension: 0.3,
+                                backgroundColor: "rgba(78, 115, 223, 0.05)",
+                                borderColor: "rgba(78, 115, 223, 1)",
+                                pointRadius: 3,
+                                pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                                pointBorderColor: "rgba(78, 115, 223, 1)",
+                                pointHoverRadius: 3,
+                                pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                                pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                                pointHitRadius: 10,
+                                pointBorderWidth: 2,
+                                data: chartData1,
+                            },
+                            {
+                                label: "초코쿠키",
+                                lineTension: 0.3,
+                                backgroundColor: "rgba(78, 115, 223, 0.05)",
+                                borderColor: "rgba(195, 232, 18, 1)",
+                                pointRadius: 3,
+                                pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                                pointBorderColor: "rgba(78, 115, 223, 1)",
+                                pointHoverRadius: 3,
+                                pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                                pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                                pointHitRadius: 10,
+                                pointBorderWidth: 2,
+                                data: chartData2,
+                            },
+                            {
+                                label: "견과류쿠키",
+                                lineTension: 0.3,
+                                backgroundColor: "rgba(78, 115, 223, 0.05)",
+                                borderColor: "rgba(105, 20, 44, 1)",
+                                pointRadius: 3,
+                                pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                                pointBorderColor: "rgba(78, 115, 223, 1)",
+                                pointHoverRadius: 3,
+                                pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                                pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                                pointHitRadius: 10,
+                                pointBorderWidth: 2,
+                                data: chartData3,
+                            }
+                          ],
+                       },
+                        options: {
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    left: 10,
+                                    right: 25,
+                                    top: 25,
+                                    bottom: 0
+                                }
+                            },
+                            scales: {
+                                xAxes: [{
+                                    time: {
+                                        unit: 'date'
+                                    },
+                                    gridLines: {
+                                        display: false,
+                                        drawBorder: false
+                                    },
+                                    ticks: {
+                                        maxTicksLimit: 7
+                                    }
+                                }],
+                                yAxes: [{
+                                    ticks: {
+                                        maxTicksLimit: 5,
+                                        padding: 10,
+                                        callback: function(value) {
+                                            return '$' + value.toLocaleString();
+                                        }
+                                    },
+                                    gridLines: {
+                                        color: "rgb(234, 236, 244)",
+                                        zeroLineColor: "rgb(234, 236, 244)",
+                                        drawBorder: false,
+                                        borderDash: [2],
+                                        zeroLineBorderDash: [2]
+                                    }
+                                }],
+                            },
+                            legend: {
+                                display: false
+                            },
+                            tooltips: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                titleMarginBottom: 10,
+                                titleFontColor: '#6e707e',
+                                titleFontSize: 14,
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                intersect: false,
+                                mode: 'index',
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function(tooltipItem, chart) {
+                                        var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                                        return datasetLabel + ': $' + tooltipItem.yLabel.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            });
+        }
+
+        ajax();
+        
+        $(document).ready(function(){
+    		getEmpData();
+    		$("#selectLan").val("${param.lang}").change(function(){
+    			$("#selectLanForm").submit()
+    			/*
+    			var chVal = $(this).val()
+    			if(chVal!=''){
+    				location.href="/cookiemain?lang="+chVal
+    			}
+    			*/
+    		})
+    		
+    		// 메세지 표시
+    		headerMessage(hdEmpno, "", 3, 4, 1);
+    		headerMessageCnt(hdEmpno);
+    		$(".modal").on('hide.bs.modal', function () {
+    			getEmpData();
+    			// 모달이 닫힐 때 메세지 표시
+    			headerMessage(hdEmpno, "", 3, 4, 1);
+    			headerMessageCnt(hdEmpno);
+    		});
+    		
+    	});
+    	let hdEmpno = "${sessionScope.empno}"
+
+       	function getEmpData() {
+            $.ajax({
+                url: "ajaxcookieempData",  
+                type: "post",
+                dataType: "json",
+                success: function(emp) {
+    				if(emp.auth==1){job="사원"
+    				}else if(emp.auth==2){job="관리자"
+    				}else{job="시스템관리자"}
+    				
+    				$("#userInfoEname").text(emp.dname+"팀 "+emp.ename+" "+job);
+    				//console.log("사원번호 : "+emp.empno)
+    				//console.log("사원이름 : "+emp.ename)
+    				if(emp.empno==0){
+    					alert("로그인 후 이용 가능합니다")
+    					location.href="/cookielogin?lang=${param.lang}"
+    				}
+                },
+                error: function(error) {
+                    console.log("AJAX 요청 실패:"+error);
+                }
+            });
+        }
+    	function logout(){
+    		$.ajax({
+    			url: "ajaxcookieempDataDel", // 세션데이터 삭제
+                type: "post",
+                success: function(msg) {
+                	console.log(msg)
+    				location.href="/cookielogin?lang=${param.lang}"
+                },
+                error: function(error) {
+                    console.log("AJAX 요청 실패:"+error);
+                }
+    		})
+    	}
+    	
+    	// 메세지 검색하는 ajax
+    	function headerMessage(empno, ename, sendOrRecieve, pageSize, curPage) {
+    		let nowDate = new Date(); // 현재 시간
+    		let nowDateS = nowDate.toISOString(); // 시간을 문자열 형태로 ("YYYY-MM-DDTHH:MI:SS.sssZ")
+    		let today = nowDateS.slice(0,10); // 앞에서부터 10글자 뽑아오기("YYYY-MM-DD")
+    		let msgDay = "";
+    		let hMsgHtml1 = "<a class=\"dropdown-item d-flex align-items-center\" href=\"";
+        	let hMsgHtmlUrl = "/yoocookiemessage?insertNo=5&lang=${param.lang}&goMsg=";
+        	let hMsgHtml2 = "\"><div class=\"dropdown-list-image mr-3\"><i class=\"fas fa-";
+        	let hMsgHtmlIcon = "";
+        	let hMsgHtml3 = " fa-3x text-gray-300 rounded-circle\"></i>";
+            let hMsgHtml4 = "<div class=\"status-indicator";
+            let hMsgMtmlRead = "";
+            let hMsgHtml5 = "\"></div></div><div class=\"font-weight-bold\"><div class=\"text-truncate\">";
+            let hMsgHtml6 = "</div><div class=\"small text-gray-500\">";
+            let hMsgHtml7 = "</div></div></a>";
+            //console.log(empno)
+            //console.log(ename)
+            //console.log(sendOrRecieve)
+            //console.log(pageSize)
+            //console.log(curPage)
+    		$.ajax({
+    			url : "/ajaxsearchMsgList",
+    			type : "post",
+    			data : "empno=" + empno + "&ename=" + ename
+    					+ "&sendOrRecieve=" + sendOrRecieve
+    					+"&pageSize=" + pageSize + "&curPage=" + curPage,
+    			dataType : "json",
+    			success : function(msgs) {
+    				let addHTML = "";
+    				let senddate = "";
+    				$(msgs).each(function(idx, msg) {
+    					if((msg.deptno/10)%5==1){
+    						hMsgHtmlIcon = "address-book"
+    					}else if((msg.deptno/10)%5==2){
+    						hMsgHtmlIcon = "cookie"
+    					}else if((msg.deptno/10)%5==3){
+    						hMsgHtmlIcon = "truck"
+    					}else if((msg.deptno/10)%5==4){
+    						hMsgHtmlIcon = "box"
+    					}else if((msg.deptno/10)%5==0){
+    						hMsgHtmlIcon = "ghost"
+    					}
+    					if(msg.senddte.slice(0,10)==today){
+    						msgDay = msg.senddte.slice(11,16);
+    					}else{
+    						msgDay = msg.senddte.slice(0,10);
+    					}
+    					if(msg.opauth==1){
+    						hMsgMtmlRead = " bg-success";
+    					}else{
+    						hMsgMtmlRead = "";
+    					}
+    					let fixMsg = msg.content.replace(/\\n/g, "\n");
+    					//senddate = msg.senddte.toISOString()
+    					addHTML += hMsgHtml1 + hMsgHtmlUrl + msg.mid
+    							+ hMsgHtml2 + hMsgHtmlIcon + hMsgHtml3 + hMsgHtml4
+    							+ hMsgMtmlRead + hMsgHtml5 + fixMsg + hMsgHtml6
+    							+ msg.ename + " · "+ msgDay + hMsgHtml7
+    				})
+    				//console.log(addHTML)
+    				$("#reMsgModalT").after(addHTML)
+    			},
+    			error : function(err) {
+    				console.log(err)
+    			}
+    		})
+    	}
+    	function headerMessageCnt(empno) {
+    		$.ajax({
+    			url : "/ajaxreadMessageCnt",
+    			type : "post",
+    			data : "reid=" + empno,
+    			success : function(cnt) {
+    				if(cnt!=0){
+    					$("#messageAlert").text(cnt)
+    				}
+    			},
+    			error : function(err) {
+    				console.log(err)
+    			}
+    		})
+    	}
+    </script>
+
+   </div>
+   </div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+석송이
+핵심내용
+
+1. DI(Dependency Injection): 의존성을 외부에서 주입받는 방식
+==>
+String path = "a01_diexp\\di14.xml";
+		AbstractApplicationContext ctx = 
+				new GenericXmlApplicationContext(path);
+==> 경로 얻기
+ctx.getBean()
+==> Bean 얻기
+
+
+2. Bean: Spring 컨테이너에서 관리하는 객체
+스프링의 심장이라고 할 수 있는 컨테이너에서 객체들끼리
+연관관계자 자주 일어난다
+class형 1:1연관 관계 객체 설정과 사용
+ 1:다 연관 관계	
+- 포함될 객체를 위한 클래스 선언
+- 포함할 객체를 위한 클래스 선언.
+
+
+
+3. ApplicationContext: 스프링 컨테이너로 Bean을 관리하고 제공
+컨테이너에 객체생성
+<bean id="car" class="a01_diexp.z02_vo.Car"> // 객체생성
+	<constructor-arg value="벤츠"/>   // 생성자
+	<property name="engine" ref="en"/> //set()
+</bean>
+
+
+
+
+4.XML Configuration vs Java Configuration: DI를 설정하는 두 가지 방법
+
+ @RequestMapping  
+   		컨트롤러 클래스안에 메서드별로 선언하여 해당 메서드에서
+   		1. url로 호출 @RequestMapping
+   		2. 요청값 처리 @RequestParam
+   		3. 모델데이터 설정 Model d; d.addAttribute("key","value");
+   		4. 뷰단 호출 return "@@@.jsp"; 화면 jsp호출
+
+
+autowire=byType : 컨테이너에 각각 객체가 만들어 졌을 때, 필드에 선언된
+		객체가 있으면 자동으로 할당해주세요.
+
+

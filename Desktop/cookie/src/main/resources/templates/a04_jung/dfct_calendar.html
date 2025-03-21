@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<link href='a00_com/lib/main.css' rel='stylesheet' />
+<link href="a00_com/bootstrap.min.css" rel="stylesheet" >
+<script src="a00_com/jquery.min.js"></script>
+<script src="a00_com/bootstrap.min.js"></script>
+<script src='a00_com/lib/main.js'></script>
+<!-- Custom fonts for this template-->
+<link href="a00_com/vendor/fontawesome-free/css/all.min.css"
+	rel="stylesheet" type="text/css">
+<link
+	href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+	rel="stylesheet">
+<!-- Custom styles for this template-->
+<link href="a00_com/css/sb-admin-2.min.css" rel="stylesheet">
+<script>
+let sesAuth = 0;
+let sesDeptno = 0;
+$(document).ready(function(){
+	sidebarIncludeAjax();
+	headerIncludeAjax();
+	footerIncludeAjax();
+function sidebarIncludeAjax(){
+	$.ajax({
+        url: "/sidebar",  
+        type: "get",
+        dataType: "text",
+        success: function(data) {
+        	$("#content-wrapper").before(data)
+            console.log("사이드바");
+        },
+        error: function(error) {
+            console.log("AJAX 요청 실패:"+error);
+        }
+    });
+}
+function headerIncludeAjax(){
+	$.ajax({
+        url: "/header",  
+        type: "get",
+        dataType: "text",
+        success: function(data) {
+        	$("#headerAfter").before(data)
+            console.log("해더");
+        },
+        error: function(error) {
+            console.log("AJAX 요청 실패:"+error);
+        }
+    });
+}
+function footerIncludeAjax(){
+	$.ajax({
+        url: "yoofooterCookie",  
+        type: "get",
+        dataType: "text",
+        success: function(data) {
+        	$("#footerBox").html(data)
+            console.log("푸터");
+        },
+        error: function(error) {
+            console.log("AJAX 요청 실패:"+error);
+        }
+    });
+} 
+let sessionInfo = {}; // 전역 변수로 세션 데이터 저장
+
+// ✅ 세션 정보 불러오기 (페이지 로드 시)
+function fetchSessionInfo() {
+    $.ajax({
+        url: "/JunggetSessionInfo2",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            sessionInfo = data; // 세션 데이터 저장
+            sesAuth = data.auth
+            sesDeptno = data.deptno
+            console.log("✅ 세션 정보:", sessionInfo);
+         // 개별 값 출력 (필요 시)
+			console.log("👤 사원번호(empno):", sessionInfo.empno);
+			console.log("🏢 부서번호(deptno):", sessionInfo.deptno);
+			console.log("🔑 권한(auth):", sessionInfo.auth);
+        },
+        error: function(error) {
+            console.error("❌ 세션 정보 가져오기 실패:", error);
+        }
+    });
+}
+
+
+// ✅ 세션 정보 불러오기 호출
+fetchSessionInfo();
+
+});
+  document.addEventListener('DOMContentLoaded', function() {
+	  
+    var calendarEl = document.getElementById('calendar');
+
+    var toDay = new Date(); // javascript의 날짜 객체..(현재 날짜와 시간)
+    // 2024-12-03T12:30:25 ==> ISO 표준시간 표현방법 : fullcalendar api 
+    //alert(toDay.toISOString())
+    // 시간은 필요없고, 날짜만 추출할려면..
+    //toDay.toISOString().split("T") // ["2024-12-03","12:30:25"] 배열로 구분하여 담긴다.
+    // 최종적으로 활용할 날짜만 추출하기 위해..
+    var date = toDay.toISOString().split("T")[0] 
+    
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        // 화면에 나오는 이벤트
+      },
+      initialDate: date,
+      navLinks: true, // can click day/week names to navigate views
+      selectable: true,
+      selectMirror: true,
+      select: function(event) {
+		if(sesAuth !== 9 && (sesAuth < 2 || sesDeptno != 40)){
+			alert("권한이 없습니다.")
+			return
+		}
+		$("#showModal").click() // 입력을 위한 모달이 로딩되게 처리..
+		$("#regBtn").show();$("#uptBtn").hide();$("#delBtn").hide()
+		$("#modalTitle").text("일정등록")
+		console.log(event)
+		console.log(event.start)
+		console.log(event.end)
+		console.log(event.allDay)
+		addForm(event, 'I')  // 입력모달/상세모달이 같은 form에 의해 처리되기에 구분..(공통함수이용)
+        calendar.unselect()
+      },
+      eventClick: function(arg) {
+    	  if(sesAuth !== 9 && (sesAuth < 2 || sesDeptno != 40)){
+  			alert("권한이 없습니다.")
+  			return
+  		}
+  		$("#showModal").click() // 입력을 위한 모달이 로딩되게 처리..
+		$("#regBtn").hide();$("#uptBtn").show();$("#delBtn").show()
+		$("#modalTitle").text("일정상세")
+		addForm(arg.event, 'D')
+      },
+      
+      editable: true,
+      dayMaxEvents: true, // allow "more" link when too many events
+      events:function(info, successCallback, failureCallback){
+  		$.ajax({
+			url:"Dfct_calendarListAjax",
+			dataType:"json",
+			success:function(data){
+				// calList  mngList
+				var calList = data.calList;
+				
+            	console.log("# 게시판 프로젝트 #")
+            	console.log(calList)
+            	console.log(calList.dlist)
+            	successCallback(calList)
+            	var dptHTML="<option value='0'>부서선택</option>"
+				$(data.mngList).each(function(idx, dfc){
+					dptHTML+=`<option value='${dfc.dfct_id}'>
+						불량처리결과:${dfc.dfct_prcs_rslt}[${dfc.dfct_id}]
+									</option>`
+
+				})
+				$("[name=dfct_id]").html(dptHTML)
+            	
+			},
+			error:function(err){
+				console.log(err)
+				failureCallback(err)
+			}
+		})
+		  
+	  }
+    });
+
+    calendar.render();
+    
+    
+    $("#regBtn").click(function(){
+    	if (!validateModalForm()) return;
+		if(confirm("일정 등록 하시겠습니까?")){
+			callAjax("insertDfct_calendarAjax")
+		}
+    })
+    $("#uptBtn").click(function(){
+    	if (!validateModalForm()) return;
+		if(confirm("일정 수정 하시겠습니까?")){
+			callAjax("updateDfct_calendarAjax")
+		}
+    })  
+    $("#delBtn").click(function(){
+    	if (!validateModalForm()) return;
+		if(confirm("일정 삭제 하시겠습니까?")){
+			callAjax("deleteDfct_calendarAjax")
+		}
+    })      
+    // 
+// 🔹 모달 필수값 검증 함수
+    function validateModalForm() {
+        var title = $("[name=title]").val().trim();
+        var start = $("[name=start]").val().trim();
+        var end = $("[name=end]").val().trim();
+        var dfctId = $("[name=dfct_id]").val();
+
+        if (title === "" || start === "" || end === "" || dfctId === "0") {
+            alert("모든 필드를 입력하세요.");
+            return false;
+        }
+        return true;
+    }
+    function callAjax(loc){
+		$.ajax({
+			url:loc,
+			type:"post",
+			data:$("#frm").serialize(),
+			dataType:"json",
+			success:function(data){
+				/*
+			class CudVo {
+				private String msg;
+				private List<?> list;	
+			==> {msg:"등록성공", list:[{id:1,title:""},{id:2,title:""},]}	
+				*/
+				console.log(data)
+				
+				console.log("## CUD 이후 ##")
+				alert(data.msg)	
+				/// 데이터 재 랜더링...
+				calendar.removeAllEvents()
+				calendar.addEventSource(data.list)					
+			},
+			error:function(err){
+				console.log(err)
+			}
+		})
+    }
+    
+    
+  });
+  // 등록/상세 따른 모달창의 데이터 입력 form형식 처리
+  // 등록 addForm(event, "I"),  일정클릭시 addForm(arg.event, "D")
+  function addForm(event, proc){
+	$("#frm")[0].reset() // form데이터 초기화
+	
+	$("[name=start]").val(event.startStr)
+	if(event.end==null){  // 마지막날짜가 없는 경우
+		$("[name=end]").val(event.startStr)
+    }else{
+    	$("[name=end]").val(event.endStr)
+    }
+	$("[name=allDay]").val(event.allDay?1:0);// event.allDay true일 때, 1 그외는 0	
+	if(proc=="D"){ // 등록된 일정을 클릭시에서 그외 정보도 할당해야 한다. 그래서 구분..
+//   start end allDay title  backgroundColor textColor  
+// content writer urllink
+		$("[name=id]").val(event.id)
+		$("[name=title]").val(event.title)
+		$("[name=backgroundColor]").val(event.backgroundColor)
+		$("[name=textColor]").val(event.textColor)
+		$("[name=dfct_id]").val(event.extendedProps.dfct_id)
+	}
+	
+	
+  }
+</script>
+<style>
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+    font-size: 14px;
+  }
+
+  #calendar {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+</style>
+</head>
+<body>
+ <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <!-- End of Topbar -->
+				<!-- Begin Page Content -->
+                <div class="container-fluid" id="headerAfter">
+  <div id='calendar'></div>
+  <!-- 
+ 	private int id; // 번호
+	private int dfct_id; //불량 관리 아이디
+	private String title;// 제목
+	private String start;//시작일
+	private String end;//마지막일
+	private String backgroundcolor;//배경색
+	private String textcolor;//색상
+	private boolean allday;//종일여부
+	private String dfc_typ;//불량유형
+	private String dfct_pic_nm;//담당자명
+	private String dfc_prd_cnfr_name;//확인근무자명
+	private String dfct_prcs_rslt;//불량처리결과
+   -->
+  <!-- 모달 로딩 요소객체 --> 
+  <div id="showModal"  data-toggle="modal" data-target="#exampleModalCenter"></div> 
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">타이틀</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<form id="frm" class="form"  method="post">
+		 	<input type="hidden" name="id" value="0"/>
+	     <div class="row">
+	      <div class="col">
+	        <input type="text" class="form-control" placeholder="일정명 입력" name="title">
+	      </div>
+	     </div>
+	     <div class="row">
+	      <div class="col">
+	      	<select class="form-control"  name="allDay" >
+	      		<option value="1">종일</option>
+	      		<option value="0">시간</option>
+	      	</select>
+	      </div>
+	     </div> 	     
+	     <div class="row">
+	      <div class="col">
+	        <input type="text" class="form-control" placeholder="시작일시" name="start">
+	      </div>
+	      <div class="col">
+	      	<input type="text" class="form-control" placeholder="종료일시" name="end">
+	      </div>	      
+	     </div>	   
+	     <div class="row">
+	      <div class="col">
+	        <input type="color"  title="배경색상"  class="form-control" name="backgroundColor" value="#0099cc"> 
+	      </div>
+	      <div class="col">
+	      	<input type="color" title="글자색상"  class="form-control" name="textColor"  value="#ccffff">
+	      </div>	      
+	     </div>
+	      <div class="row">
+	      <div class="col">
+	         <select  name="dfct_id" class="form-control" >
+	
+			</select>
+	      </div>	      
+	     </div>	 
+	    </form> 
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="regBtn">등록</button>
+        <button type="button" class="btn btn-primary" id="uptBtn">수정</button>
+        <button type="button" class="btn btn-warning" id="delBtn">삭제</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        
+      </div>
+    </div>
+  </div>
+</div>   
+
+</body>
+</html>

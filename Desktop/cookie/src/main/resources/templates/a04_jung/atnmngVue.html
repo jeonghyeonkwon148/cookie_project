@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>vue exercise</title>
+
+<link rel="stylesheet" href="/a00_com/bootstrap.min.css">
+<style>
+td {
+	text-align: center;
+}
+#loadBtn{
+  	position: fixed; /* 화면에 고정 */
+	top: 40%; /* 화면의 중간 */
+	left: 50%; /* 화면의 중간 */		
+}	
+	
+</style>
+<script src="/a00_com/jquery.min.js"></script>
+<script src="/a00_com/bootstrap.min.js"></script>
+<script src="https://unpkg.com/vue" type="text/javascript"></script>
+<script src="http://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<!-- Custom fonts for this template-->
+<link href="a00_com/vendor/fontawesome-free/css/all.min.css"
+	rel="stylesheet" type="text/css">
+<link
+	href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+	rel="stylesheet">
+
+<!-- Custom styles for this template-->
+<link href="a00_com/css/sb-admin-2.min.css" rel="stylesheet">
+<script type="text/javascript">
+// http://localhost:5050/a04_jung\atnmngVue.html
+/*
+# axios를 활용한 ajax통신으로 사원정보 리스트/등록/수정/삭제 
+1. axios를 통한 비동기 처리는 backend단과 연동하여 최신의 vue 프레임워크를 이용함으로 효율적인 화면 구성을 
+	할 수 있다.
+2. 처리 순서.
+	1) backend 처리
+		backend단에 json데이터로 리스트, 단일데이터, 등록, 수정,삭제 처리하는 모듈을 만들어 놓아야 한다.
+		
+	2) frontend 처리(vue화면 처리)
+		위 backend 처리 내용을 요청을 호출하여 json데이터 요청값으로 처리를 할 수 있다.
+		
+# 이벤트 처리.
+1. 이벤트 대상 요소 객체 선정 속성 
+	v-on:이벤트명="함수", @이벤트명="함수"
+	로 처리하여 이벤트 처리를 한다.
+2. 검색의 경우, 입력 후, enter키를 입력하거나, 항목 입력 후, search 버튼을 입력시,
+	search() 함수가 호출 되도록 한다.
+	
+
+
+
+
+ */
+	$(document).ready(function(){
+		function getSessionInfo() {
+			return {
+				empno: sessionStorage.getItem("sessionEmpno") || "0",
+				deptno: sessionStorage.getItem("sessionDeptno") || "0",
+				auth: sessionStorage.getItem("sessionAuth") || "0"
+			};
+		}
+		let { empno, deptno, auth } = getSessionInfo();
+		sidebarIncludeAjax();
+		headerIncludeAjax();
+		footerIncludeAjax();
+		$("#pageSize").val("${sch.pageSize}")	
+		$("#schBtn").click(function(){
+			$("[name=curPage]").val(1)
+			$("form").submit();			
+		})
+		function sidebarIncludeAjax(){
+			$.ajax({
+		        url: "/sidebar",  
+		        type: "get",
+		        dataType: "text",
+		        success: function(data) {
+		        	$("#content-wrapper").before(data)
+		            console.log("사이드바");
+		        },
+		        error: function(error) {
+		            console.log("AJAX 요청 실패:"+error);
+		        }
+		    });
+		}
+		function headerIncludeAjax(){
+			$.ajax({
+		        url: "/header",  
+		        type: "get",
+		        dataType: "text",
+		        success: function(data) {
+		        	$("#headerAfter").before(data)
+		            console.log("해더");
+		        },
+		        error: function(error) {
+		            console.log("AJAX 요청 실패:"+error);
+		        }
+		    });
+		}
+		function footerIncludeAjax(){
+			$.ajax({
+		        url: "yoofooterCookie",  
+		        type: "get",
+		        dataType: "text",
+		        success: function(data) {
+		        	$("#footerBox").html(data)
+		            console.log("푸터");
+		        },
+		        error: function(error) {
+		            console.log("AJAX 요청 실패:"+error);
+		        }
+		    });
+		}
+
+		const URL = "/ajaxJungListVue"
+		var model = {msg:"근태정보리스트(vue-axios)", 
+					 sch:{ename:""}, atnmngList:[], 
+					 atnmng:{no:'',empno:'0',wtime:'',extrawtime:'',workingDate:'',workingTime:'',clockTime:'',ename:''}, 
+					 cempList:[], isLoading:false, sesEmpno: empno, sesDeptno: deptno, sesAuth: auth }
+		var vm = Vue.createApp({
+			name:"App",
+			data(){
+				return model;
+			},
+			created(){
+				this.getSessionInfo();  // 세션 정보 가져오기
+			    console.log("세션 값 확인:", {
+			        sesEmpno: this.sesEmpno,
+			        sesDeptno: this.sesDeptno,
+			        sesAuth: this.sesAuth
+			    });
+				this.search()
+				this.callCemp()
+			},
+			methods:{
+				 async getSessionInfo() {
+				        try {
+				            const response = await axios.get('/JunggetSessionInfo'); // 백엔드에서 세션 정보 제공
+				            if (response.data) {
+				                this.sesEmpno = response.data.empno || "0";
+				                this.sesDeptno = response.data.deptno || "0";
+				                this.sesAuth = response.data.auth || "0";
+
+				                console.log("서버에서 가져온 세션 값:", {
+				                    sesEmpno: this.sesEmpno,
+				                    sesDeptno: this.sesDeptno,
+				                    sesAuth: this.sesAuth
+				                });
+				            } else {
+				                console.warn("세션 정보가 비어 있습니다.");
+				            }
+				        } catch (error) {
+				            console.error("세션 정보를 가져오는 중 오류 발생:", error);
+				        }
+				    },
+                callCemp(){
+					// ajaxTJCookieeempListVue   
+					axios.get("/ajaxTJCookieeempListVue").then((response)=>{
+						console.log(response.data)
+						this.cempList = response.data
+					}).catch((err)=>{
+						console.log(err)
+					})					
+					
+				},				   
+					formatTime(dateString) {
+					  const date = new Date(dateString);
+					  return date.toLocaleTimeString('ko-KR'); // (예: "오후 2:30:15")
+					},
+				      formatDate(dateString) {
+				    	  const date = new Date(dateString);
+				    	  const year = date.getFullYear();
+				    	  const month = String(date.getMonth() + 1).padStart(2, '0'); // 월을 2자리로 변환
+				    	  const day = String(date.getDate()).padStart(2, '0'); // 일을 2자리로 변환
+				    	  return `${year}-${month}-${day}`;
+				    	},
+				    	getAtnmng(no) {
+				    	    // 상세 화면 처리
+				    	    $("#regBtnFrm").click();
+
+				    	    // 상세 데이터 가져오기 (axios 요청)
+				    	    axios.get("/AtnMngVue", { params: { no: no } })
+				    	        .then((response) => {
+				    	            if (!response.data) {
+				    	                alert("데이터를 불러오는 데 실패했습니다.");
+				    	                return;
+				    	            }
+
+				    	            console.log("# 상세 데이터 #");
+				    	            console.log(response.data);
+
+				    	            this.atnmng = response.data;
+
+				    	            // 날짜 및 시간 포맷 변경
+				    	            this.atnmng.workingDate = formatDate(new Date(this.atnmng.workingDate));
+				    	            this.atnmng.workingTime = formatDateTime(new Date(this.atnmng.workingTime));
+				    	            this.atnmng.clockTime = formatDateTime(new Date(this.atnmng.clockTime));
+
+				    	            // ✅ 세션 정보와 상세 데이터의 empno 비교
+				    	           
+				    	            if (this.sesAuth === 9 || (this.sesDeptno == 40 && this.sesAuth > 1)) {
+				    	                $("#exampleModalLongTitle").text("근태 상세");
+				    	                $("#atnmngRegBtn").hide();
+				    	                $("#atnmngUptBtn").show();
+				    	                $("#atnmngUptBtn2").show();
+				    	                $("#atnmngUptBtn3").show();
+				    	                $("#atnmngDelBtn").show();
+				    	            }
+				    	            else if (this.sesEmpno === this.atnmng.empno) {
+				    	                alert("출퇴근을 등록해 주세요.");
+				    	                $("#atnmngRegBtn").hide();
+				    	                $("#atnmngUptBtn").hide();
+				    	                $("#atnmngUptBtn2").show();
+				    	                $("#atnmngUptBtn3").show();
+				    	                $("#atnmngDelBtn").hide();
+				    	            }  else {
+				    	                alert("접근 권한이 없습니다.");
+				    	                $("#atnmngRegBtn").hide();
+				    	                $("#atnmngUptBtn").hide();
+				    	                $("#atnmngUptBtn2").hide();
+				    	                $("#atnmngUptBtn3").hide();
+				    	                $("#atnmngDelBtn").hide();
+				    	            }
+
+				    	            // 사원번호 입력을 불가능하게 설정
+				    	            $("#frm02 [name=no]").prop("readonly", true);
+				    	        })
+				    	        .catch((err) => {
+				    	            console.log(err);
+				    	            alert("서버에서 데이터를 불러오는 중 오류가 발생했습니다.");
+				    	        });
+				    	}
+,
+				insertAtnmng(){
+					 if (!this.atnmng.workingDate || !this.atnmng.workingTime || !this.atnmng.clockTime) {
+				            alert("모든 필수 입력값을 입력해주세요.");
+				            return;
+				        }
+					console.log("# 근태정보 등록 #")
+					console.log(this.atnmng.workingTime)
+					console.log(this.atnmng.clockTime)
+					this.atnmng.workingDate = sendDate(this.atnmng.workingDate)
+					this.atnmng.workingTime = sendDate(this.atnmng.workingTime)
+					this.atnmng.clockTime = sendDate(this.atnmng.clockTime)
+					console.log("# 근태정보 데이터변경후 #")
+					console.log(this.atnmng.workingTime)
+					console.log(this.atnmng.clockTime)
+					//alert("등록 직전")
+					
+					axios.post("/insAtnMngVue",this.atnmng).then((response)=>{
+						console.log(response.data)
+						alert(response.data)
+						this.atnmng={}
+						this.atnmng.empno='0' // 부서정보 등록 표현을 위해
+						this.search()
+					}).catch((err)=>{
+						console.log(err)
+					})						
+				},
+				updateAtnmng(){
+					if (!this.atnmng.no) {
+			            alert("수정할 데이터를 선택해주세요.");
+			            return;
+			        }
+			        if (!this.atnmng.workingDate || !this.atnmng.workingTime || !this.atnmng.clockTime) {
+			            alert("모든 필수 입력값을 입력해주세요.");
+			            return;
+			        }
+					console.log("# 근태정보 수정 #")
+					console.log(this.atnmng)
+					this.atnmng.workingDate = sendDate(this.atnmng.workingDate)
+					this.atnmng.workingTime = sendDate(this.atnmng.workingTime)
+					this.atnmng.clockTime = sendDate(this.atnmng.clockTime)
+					// updateAtnmngVue
+					axios.put("/updateAtnMngVue",this.atnmng).then((response)=>{
+						console.log(response.data)
+						alert(response.data)
+						//this.atnmng={}
+						this.search()
+						// Vue 업데이트 이후 실행
+						this.$nextTick(() => {
+							$(".clsBtn").click();
+						});
+					}).catch((err)=>{
+						console.log(err)
+					})						
+				},
+				updateAtnmng2() {
+				    console.log("# 출근버튼 #");
+				    console.log(this.atnmng);
+
+				    if (!this.atnmng.workingDate) {
+				        alert("근무 날짜가 입력되지 않았습니다.");
+				        return;
+				    }
+
+				    // 현재 날짜와 근무 날짜 비교 (시간은 제외하고 날짜만 비교)
+				    const today = new Date();
+				    today.setHours(0, 0, 0, 0); // 오늘 날짜 (시간 제거)
+				    
+				    const workingDate = new Date(this.atnmng.workingDate);
+				    workingDate.setHours(0, 0, 0, 0); // 근무 날짜 (시간 제거)
+
+				    if (workingDate > today) {
+				        alert("근무 날짜는 미래 날짜로 설정할 수 없습니다.");
+				        return; // 실행 중단
+				    }
+
+				    this.atnmng.workingTime = sendDate(this.atnmng.workingTime);
+
+				    axios.put("/updateAtnMng2Vue", this.atnmng)
+				        .then((response) => {
+				            console.log(response.data);
+				            alert(response.data);
+				            this.atnmng = {};
+				            this.search();
+				            $(".clsBtn").click();
+				        })
+				        .catch((err) => {
+				            console.log(err);
+				            alert("출근 시간 업데이트 중 오류가 발생했습니다.");
+				        });
+				}
+			,
+			updateAtnmng3() {
+			    console.log("# 퇴근버튼 #");
+			    console.log(this.atnmng);
+
+			    if (!this.atnmng.workingDate) {
+			        alert("근무 날짜가 입력되지 않았습니다.");
+			        return;
+			    }
+
+			    if (!this.atnmng.workingTime) {
+			        alert("출근 시간이 입력되지 않았습니다.");
+			        return;
+			    }
+
+			    // 현재 날짜와 근무 날짜 비교 (시간 제거 후 비교)
+			    const today = new Date();
+			    today.setHours(0, 0, 0, 0); // 오늘 날짜 (시간 제거)
+
+			    const workingDate = new Date(this.atnmng.workingDate);
+			    workingDate.setHours(0, 0, 0, 0); // 근무 날짜 (시간 제거)
+
+			    if (workingDate > today) {
+			        alert("근무 날짜는 미래 날짜로 설정할 수 없습니다.");
+			        return; // 실행 중단
+			    }
+
+			    // 현재 시간과 출근 시간 비교
+			    const now = new Date(); // 현재 시간
+			    const workingTime = new Date(this.atnmng.workingTime);
+
+			    if (workingTime > now) {
+			        alert("출근 시간은 현재 시간보다 나중일 수 없습니다.");
+			        return; // 실행 중단
+			    }
+
+			    this.atnmng.clockTime = sendDate(this.atnmng.clockTime);
+
+			    axios.put("/updateAtnMng3Vue", this.atnmng)
+			        .then((response) => {
+			            console.log(response.data);
+			            alert(response.data);
+			            this.atnmng = {};
+			            this.search();
+			            $(".clsBtn").click();
+			        })
+			        .catch((err) => {
+			            console.log(err);
+			            alert("퇴근 시간 업데이트 중 오류가 발생했습니다.");
+			        });
+			}
+
+			,
+				
+				deleteAtnmng(){
+					if (!this.atnmng.no) {
+			            alert("삭제할 데이터를 선택해주세요.");
+			            return;
+			        }
+
+			        if (!confirm("정말 삭제하시겠습니까?")) {
+			            return;
+			        }
+					console.log("# 근태정보 삭제 #")
+					console.log(this.atnmng.no)
+					axios.delete("/deleteAtnMngVue",{params: {no:this.atnmng.no} }).then((response)=>{
+						console.log(response.data)
+						alert(response.data)
+						this.atnmng={}
+						this.search()
+						$(".clsBtn").click()
+					}).catch((err)=>{
+						console.log(err)
+					})						
+				},					
+				search(){
+					this.isLoading=true;
+					//  axios.get(주소,{params:요청값매개변수}).then(함수1-처리결과).catch(함수2-에러발생)
+					axios.get(URL,{params:this.sch}).then((response)=>{
+						console.log(response.data)
+						this.atnmngList = response.data
+						this.isLoading=false;
+						console.log("#로딩#")
+						console.log(this.isLoading)
+					}).catch((err)=>{
+						console.log(err)
+					})
+				},
+				registerFrm(){
+					if(this.sesAuth === 9 || (this.sesDeptno == 40 && this.sesAuth > 1)){
+					// 입력을 초기화
+					 //$("#frm02")[0].reset()
+					 this.atnmng={deptno:'0'}
+					 // 타이틀 변경
+					 $("#exampleModalLongTitle").text("근태 등록");
+					 // 등록 버튼을 보이게 하고, 수정/삭제버튼을 보이지 않게..
+					 $("#atnmngRegBtn").show()
+					 $("#atnmngUptBtn").hide()
+					 $("#atnmngUptBtn2").hide()
+					 $("#atnmngUptBtn3").hide()
+					 $("#atnmngDelBtn").hide()
+					 // 사원번호가 입력이 가능하게/상세화면에서는 입력불가능하게 해야되기에..
+					 $("#frm02 [name=no]").prop("readonly",false)
+					}else{
+						console.log(this.sesAuth)
+						alert("등록및 수정권한이 없습니다.")
+					 $("#atnmngRegBtn").hide()
+					 $("#atnmngUptBtn").hide()
+					 $("#atnmngUptBtn2").hide()
+					 $("#atnmngUptBtn3").hide()
+					 $("#atnmngDelBtn").hide()
+					}
+					
+				}
+			}
+		}).mount(".container")
+	});
+	function sendDate(input){
+	    // 로컬 시간을 "YYYY-MM-DD HH:MM" 형태로 변환
+	    let localDateTime = new Date(input);
+	    localDateTime.setHours(localDateTime.getHours()-9);
+	    let formattedDateTime = localDateTime.getFullYear() + '-' +
+	        String(localDateTime.getMonth() + 1).padStart(2, '0') + '-' +
+	        String(localDateTime.getDate()).padStart(2, '0') + 'T' +
+	        String(localDateTime.getHours()).padStart(2, '0') + ':' +
+	        String(localDateTime.getMinutes()).padStart(2, '0');
+		return formattedDateTime;
+	}
+	
+	function formatDate(date) {
+	    let year = date.getFullYear();
+	    let month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1
+	    let day = String(date.getDate()).padStart(2, '0');       // 일자를 2자리로 보장
+	    return `${year}-${month}-${day}`;
+	}
+	
+	function formatDateTime(date) {  		                                            
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        //let hours = date.getHours();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        console.log(`${year}-${month}-${day}T${hours}:${minutes}`)
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+	
+</script>
+</head>
+<body><!-- ctrl + shift+ f (소스 정리) -->
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <!-- End of Topbar -->
+				<!-- Begin Page Content -->
+                <div class="container-fluid" id="headerAfter">
+	<div class="container">
+		<div class="jumbotron text-center">
+			<h2>{{msg}}</h2>
+		</div>
+		    <!-- 
+			@keyup.키이름="함수"
+			  @keyup.enter="search" 
+			 @click="search" 
+			 -->
+				<input type="hidden" id="sessionEmpno" value="${sessionScope.empno}">
+				<input type="hidden" id="sessionDeptno" value="${sessionScope.deptno}">
+				<input type="hidden" id="sessionAuth" value="${sessionScope.auth}">
+			<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+				<input @keyup.enter="search" class="form-control mr-sm-2" placeholder="사원명"
+					v-model="sch.ename" /> 		
+				<button @click="search"  class="btn btn-info" type="button">Search</button>
+			    <button class="btn btn-success" id="regBtnFrm"
+			    	 @click="registerFrm"  data-toggle="modal"data-target="#exampleModalCenter"
+			        type="button">등록</button>				
+			</nav>
+		
+		
+		<table class="table table-hover table-striped">
+			<col width="14%">
+			<col width="14%">
+			<col width="14%">
+			<col width="14%">
+			<col width="15%">
+			<col width="15%">
+			<col width="14%">
+	
+			<thead>
+				<tr class="table-success text-center">
+					<th>번호</th>
+					<th>사원명</th>
+					<th>정기근무시간</th>
+					<th>추가근무시간</th>
+					<th>출근시간</th>
+					<th>퇴근시간</th>
+					<th>근무날짜</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="atnmng in atnmngList" @dblclick="getAtnmng(atnmng.no)">
+					<td>{{atnmng.no}}</td>
+					<td>{{atnmng.ename}}</td>
+					<td>{{atnmng.wtime}}</td>
+					<td>{{atnmng.extrawtime}}</td>
+					<td>{{ formatTime(atnmng.workingTime) }}</td>
+					<td>{{ formatTime(atnmng.clockTime) }}</td>
+					<td>{{ formatDate(atnmng.workingDate)}}</td>
+					
+				</tr>
+			</tbody>
+			
+		</table>
+		
+		<button class="btn btn-primary" id="loadBtn" v-show="isLoading" disabled>
+		  <span class="spinner-border spinner-border-sm"></span>
+		  Loading..
+		</button>	
+		<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+		  <div class="modal-dialog modal-dialog-centered" role="document">
+		    <div class="modal-content">
+		    <!-- $("#exampleModalLongTitle").text("등록/상세"); -->
+		      <div class="modal-header">
+		        <h5 class="modal-title" id="exampleModalLongTitle">타이틀</h5>
+		        <button type="button" class="clsBtn close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+				<form id="frm02" class="form"  method="post">
+			     <div class="row">
+			      <div class="col">
+			        <input type="text" v-model="atnmng.no"  class="form-control" placeholder="번호 확인" name="no" readonly>
+			      </div>
+			
+			     </div>
+			     <div class="row">
+			      <div class="col">
+			         출근시간
+			         <input type="datetime-local" v-model="atnmng.workingTime"  class="form-control" placeholder="출근시간 입력(YYYY-MM-DD)" name="workingTimeStr">
+			      </div>
+			      <div class="col">
+			      	퇴근시간
+ 					<input type="datetime-local" v-model="atnmng.clockTime"  class="form-control" placeholder="퇴근시간 입력(YYYY-MM-DD)" name="clockTimeStr">
+			      </div>
+			     </div>	  
+			     <div class="row">
+			      <div class="col">
+			      	근무날짜
+			        <input type="date" v-model="atnmng.workingDate"  class="form-control" placeholder="근무날짜 입력(YYYY-MM-DD)" name="workingDateStr">
+			      </div>  	      
+			      <div class="col">
+			      	<!-- 
+			      	<input type="text" v-model="atnmng.deptno"  class="form-control" placeholder="부서번호 입력">
+			      	 -->
+			      	사원선택
+			        <select  v-model="atnmng.empno" name="empno" class="form-control" >
+						<option value="0">사원선택</option>					
+					    <option v-for="emp in cempList" :value="emp.empno">
+					        {{ emp.ename }} [{{ emp.empno }}]
+					    </option>							
+					</select>
+			      </div>
+			    </form> 
+		      </div>
+		      <div class="modal-footer"> 
+		        <button type="button" @click="insertAtnmng" id="atnmngRegBtn" class="btn btn-success">등 록</button>
+		        <button type="button" @click="updateAtnmng"  id="atnmngUptBtn" class="btn btn-primary">수 정</button>
+		        <button type="button" @click="updateAtnmng2"  id="atnmngUptBtn2" class="btn btn-primary">출 근</button>
+		        <button type="button" @click="updateAtnmng3"  id="atnmngUptBtn3" class="btn btn-primary">퇴 근</button>
+		        <button type="button" @click="deleteAtnmng"  id="atnmngDelBtn" class="btn btn-warning">삭 제</button>
+		        <button type="button"   class="clsBtn btn btn-secondary" data-dismiss="modal">Close</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+
+
+			
+	</div>
+	
+</body>
+</html>
